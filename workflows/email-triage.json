@@ -55,13 +55,13 @@
             {
               "id": "08c88005-1b4b-43b9-b708-339bb6c08e78",
               "name": "assunto",
-              "value": "Elogio pelo atendimento",
+              "value": "Cobrança duplicada no cartão",
               "type": "string"
             },
             {
               "id": "7371b263-3fd0-4921-9612-7bbe3677d5bb",
               "name": "mensagem",
-              "value": "Gostaria de agradecer pelo excelente atendimento. Fui muito bem recebido e fiquei satisfeito com o serviço. Parabéns à equipe!",
+              "value": "Olá! Identifiquei que fui cobrado duas vezes pelo mesmo pedido no meu cartão de crédito. O valor foi debitado em duplicidade e preciso que resolvam essa situação o mais rápido possível. Solicito o estorno de uma das cobranças. Aguardo um retorno urgente!",
               "type": "string"
             }
           ]
@@ -85,8 +85,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        896,
-        -176
+        704,
+        -272
       ],
       "id": "34d4f706-f657-43c9-a634-7a8e938a85f8",
       "name": "HTTP Request1"
@@ -169,8 +169,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        832,
-        0
+        880,
+        -144
       ],
       "id": "881e5742-06f0-4869-b514-726afced0354",
       "name": "Verificar urgência alta"
@@ -184,8 +184,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1072,
-        -32
+        1200,
+        16
       ],
       "id": "76410f58-9803-4bf6-960c-7bf6011c47a6",
       "name": "Enviar alerta - Alta urgência",
@@ -194,6 +194,130 @@
         "telegramApi": {
           "id": "w4CaURTkU79iU0V0",
           "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs",
+          "mode": "list",
+          "cachedResultName": "Email Triage - Histórico de E-mails",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "data_processamento": "={{ $now.toISO() }}",
+            "remetente": "={{ $json.remetente }}",
+            "assunto": "={{ $json.assunto }}",
+            "categoria": "={{ $json.categoria }}",
+            "urgencia": "={{ $json.urgencia }}",
+            "sentimento": "={{ $json.sentimento }}",
+            "resumo": "={{ $json.resumo }}",
+            "rascunho_resposta": "={{ $json.rascunho_resposta }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "data_processamento",
+              "displayName": "data_processamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "remetente",
+              "displayName": "remetente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "assunto",
+              "displayName": "assunto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgencia",
+              "displayName": "urgencia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentimento",
+              "displayName": "sentimento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumo",
+              "displayName": "resumo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rascunho_resposta",
+              "displayName": "rascunho_resposta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        128
+      ],
+      "id": "9525d62a-95cc-4868-b1d7-9f6aa36947ae",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WxhZOIbXCaUizPg6",
+          "name": "Google Sheets account"
         }
       }
     }
@@ -242,6 +366,11 @@
       "main": [
         [
           {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
             "node": "Verificar urgência alta",
             "type": "main",
             "index": 0
@@ -272,7 +401,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "a4f6d9c9-8f09-45a5-8727-a3cb87ac18dd",
+  "versionId": "8b499f5c-f489-43ac-8d36-86cd8d36fc72",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
