@@ -2,90 +2,6 @@
   "name": "Email Triage - AI",
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "9251c264-35e1-4fb9-b8cb-ab98ad518f38",
-      "name": "When clicking ‘Execute workflow’"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.deepseek.com/chat/completions",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "=\n{{ JSON.stringify({\n  model: \"deepseek-chat\",\n  messages: [\n    {\n      role: \"system\",\n      content: `Você é um assistente especializado em triagem de e-mails de atendimento ao cliente.\n\nCATEGORIAS PERMITIDAS:\n- cobranca: pagamentos, faturas e cobranças indevidas.\n- suporte_tecnico: erros de sistema e problemas técnicos.\n- duvida_produto: dúvidas sobre características e funcionamento de produtos.\n- cancelamento: solicitações de cancelamento.\n- entrega_pedido: atrasos, rastreamento e problemas de entrega.\n- elogio: elogios e avaliações positivas.\n- outros: assuntos que não se encaixam nas categorias anteriores.\n\nREGRA: escolha sempre a categoria mais específica. Um pedido atrasado deve ser entrega_pedido, nunca suporte_tecnico.\n\nNÍVEIS DE URGÊNCIA:\n- alta: problemas críticos, cobranças indevidas ou situações que exigem atenção imediata.\n- media: problemas que precisam de atendimento, mas não exigem ação imediata.\n- baixa: dúvidas simples, elogios e solicitações sem urgência.\n\nSENTIMENTOS PERMITIDOS:\n- positivo\n- neutro\n- negativo\n\nSEGURANÇA E PRIVACIDADE:\n- Nunca solicite senhas, números completos de cartões,\n  códigos de segurança ou credenciais.\n- Solicite apenas informações necessárias e não sensíveis.\n- Não invente informações nem prometa estornos ou soluções\n  que não foram confirmados.\n\nCRITÉRIOS DE URGÊNCIA:\n- alta: cobrança indevida, fraude suspeita ou problema crítico\n  que exige atenção prioritária.\n- media: atrasos, problemas de pedidos e dificuldades\n  que precisam de atendimento.\n- baixa: elogios, dúvidas simples e solicitações sem urgência.\n\nREGRAS:\n1. Escolha somente uma categoria permitida.\n2. Escolha somente uma urgência permitida.\n3. Identifique o sentimento predominante.\n4. Faça um resumo em até duas frases.\n5. Elabore uma resposta educada e profissional.\n6. Não invente informações sobre pedidos, pagamentos ou soluções.\n7. Se faltarem informações, solicite esclarecimentos.\n8. Não adicione campos extras.\n9. Retorne exclusivamente um JSON válido, sem Markdown ou explicações.\n\nFORMATO:\n{\n  \"categoria\": \"\",\n  \"urgencia\": \"\",\n  \"sentimento\": \"\",\n  \"resumo\": \"\",\n  \"rascunho_resposta\": \"\"\n}`\n    },\n    {\n      role: \"user\",\n      content: `Analise o seguinte e-mail:\n\nRemetente: ${$json.remetente}\nAssunto: ${$json.assunto}\nMensagem: ${$json.mensagem}`\n    }\n  ],\n  temperature: 0.1,\n  response_format: {\n    type: \"json_object\"\n  }\n}) }}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        416,
-        0
-      ],
-      "id": "35262bd0-214b-49f7-a8bc-b1b3895469b7",
-      "name": "HTTP Request",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "KafeN8swMq6rpuwp",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "\nconst resposta = $input.first().json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\nreturn [\n  {\n    json: classificacao\n  }\n];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        624,
-        0
-      ],
-      "id": "8d169b4e-8c61-4ac7-a2fd-f7058ef21425",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "b3c1ca65-f8a5-4f30-82bb-5096d24c88dc",
-              "leftValue": "={{ $json.urgencia }}",
-              "rightValue": "alta",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        832,
-        0
-      ],
-      "id": "881e5742-06f0-4869-b514-726afced0354",
-      "name": "If"
-    },
-    {
       "parameters": {
         "assignments": {
           "assignments": [
@@ -139,19 +55,13 @@
             {
               "id": "08c88005-1b4b-43b9-b708-339bb6c08e78",
               "name": "assunto",
-              "value": "Cobrança duplicada no cartão",
+              "value": "Elogio pelo atendimento",
               "type": "string"
             },
             {
               "id": "7371b263-3fd0-4921-9612-7bbe3677d5bb",
               "name": "mensagem",
-              "value": "Olá! Fiz uma compra no site e percebi que o valor foi cobrado duas vezes no meu cartão. Gostaria de resolver essa situação e receber o estorno da cobrança duplicada.",
-              "type": "string"
-            },
-            {
-              "id": "549b52dc-4065-4137-a762-4a5e646298c2",
-              "name": "",
-              "value": "",
+              "value": "Gostaria de agradecer pelo excelente atendimento. Fui muito bem recebido e fiquei satisfeito com o serviço. Parabéns à equipe!",
               "type": "string"
             }
           ]
@@ -166,11 +76,147 @@
       ],
       "id": "137a8234-a2f5-4057-9f65-a6edc2e0bec0",
       "name": "Cobrança Duplicada"
+    },
+    {
+      "parameters": {
+        "url": "https://api.telegram.org/bot9084387540:AAEE7e8_zsfp-6jBCAdrAKnX2ehPPVNVMi4/getUpdates",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        896,
+        -176
+      ],
+      "id": "34d4f706-f657-43c9-a634-7a8e938a85f8",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9251c264-35e1-4fb9-b8cb-ab98ad518f38",
+      "name": "Iniciar teste manual"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=\n{{ JSON.stringify({\n  model: \"deepseek-chat\",\n  messages: [\n    {\n      role: \"system\",\n      content: `Você é um assistente especializado em triagem de e-mails de atendimento ao cliente.\n\nCATEGORIAS PERMITIDAS:\n- cobranca: pagamentos, faturas e cobranças indevidas.\n- suporte_tecnico: erros de sistema e problemas técnicos.\n- duvida_produto: dúvidas sobre características e funcionamento de produtos.\n- cancelamento: solicitações de cancelamento.\n- entrega_pedido: atrasos, rastreamento e problemas de entrega.\n- elogio: elogios e avaliações positivas.\n- outros: assuntos que não se encaixam nas categorias anteriores.\n\nREGRA: escolha sempre a categoria mais específica. Um pedido atrasado deve ser entrega_pedido, nunca suporte_tecnico.\n\nNÍVEIS DE URGÊNCIA:\n- alta: problemas críticos, cobranças indevidas ou situações que exigem atenção imediata.\n- media: problemas que precisam de atendimento, mas não exigem ação imediata.\n- baixa: dúvidas simples, elogios e solicitações sem urgência.\n\nSENTIMENTOS PERMITIDOS:\n- positivo\n- neutro\n- negativo\n\nSEGURANÇA E PRIVACIDADE:\n- Nunca solicite senhas, números completos de cartões,\n  códigos de segurança ou credenciais.\n- Solicite apenas informações necessárias e não sensíveis.\n- Não invente informações nem prometa estornos ou soluções\n  que não foram confirmados.\n\nCRITÉRIOS DE URGÊNCIA:\n- alta: cobrança indevida, fraude suspeita ou problema crítico\n  que exige atenção prioritária.\n- media: atrasos, problemas de pedidos e dificuldades\n  que precisam de atendimento.\n- baixa: elogios, dúvidas simples e solicitações sem urgência.\n\nREGRAS:\n1. Escolha somente uma categoria permitida.\n2. Escolha somente uma urgência permitida.\n3. Identifique o sentimento predominante.\n4. Faça um resumo em até duas frases.\n5. Elabore uma resposta educada e profissional.\n6. Não invente informações sobre pedidos, pagamentos ou soluções.\n7. Se faltarem informações, solicite esclarecimentos.\n8. Não adicione campos extras.\n9. Retorne exclusivamente um JSON válido, sem Markdown ou explicações.\n\nFORMATO:\n{\n  \"categoria\": \"\",\n  \"urgencia\": \"\",\n  \"sentimento\": \"\",\n  \"resumo\": \"\",\n  \"rascunho_resposta\": \"\"\n}`\n    },\n    {\n      role: \"user\",\n      content: `Analise o seguinte e-mail:\n\nRemetente: ${$json.remetente}\nAssunto: ${$json.assunto}\nMensagem: ${$json.mensagem}`\n    }\n  ],\n  temperature: 0.1,\n  response_format: {\n    type: \"json_object\"\n  }\n}) }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "35262bd0-214b-49f7-a8bc-b1b3895469b7",
+      "name": "Classificar e-mail - DeepSeek",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KafeN8swMq6rpuwp",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst resposta = $input.first().json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\nconst dadosOriginais = $(\"Cobrança Duplicada\").first().json;\n\nreturn [\n  {\n    json: {\n      ...dadosOriginais,\n      ...classificacao\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8d169b4e-8c61-4ac7-a2fd-f7058ef21425",
+      "name": "Validar classificação e organizar dados"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b3c1ca65-f8a5-4f30-82bb-5096d24c88dc",
+              "leftValue": "={{ $json.urgencia }}",
+              "rightValue": "alta",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "881e5742-06f0-4869-b514-726afced0354",
+      "name": "Verificar urgência alta"
+    },
+    {
+      "parameters": {
+        "chatId": "1275267338",
+        "text": "={{\n\"🚨 ALERTA DE ALTA URGÊNCIA\\n\\n\" +\n\"📩 Remetente: \" + $json.remetente + \"\\n\" +\n\"📌 Assunto: \" + $json.assunto + \"\\n\" +\n\"🏷️ Categoria: \" + $json.categoria + \"\\n\" +\n\"😟 Sentimento: \" + $json.sentimento + \"\\n\\n\" +\n\"📝 Resumo:\\n\" + $json.resumo + \"\\n\\n\" +\n\"💬 Sugestão de resposta:\\n\" + $json.rascunho_resposta\n}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        -32
+      ],
+      "id": "76410f58-9803-4bf6-960c-7bf6011c47a6",
+      "name": "Enviar alerta - Alta urgência",
+      "webhookId": "5c27ee09-1745-4fe1-8ab0-2c2718dbc537",
+      "credentials": {
+        "telegramApi": {
+          "id": "w4CaURTkU79iU0V0",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
-    "When clicking ‘Execute workflow’": {
+    "Satisfação": {
+      "main": [
+        []
+      ]
+    },
+    "Cobrança Duplicada": {
+      "main": [
+        [
+          {
+            "node": "Classificar e-mail - DeepSeek",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iniciar teste manual": {
       "main": [
         [
           {
@@ -181,42 +227,42 @@
         ]
       ]
     },
-    "HTTP Request": {
+    "Classificar e-mail - DeepSeek": {
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "Validar classificação e organizar dados",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code in JavaScript": {
+    "Validar classificação e organizar dados": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "Verificar urgência alta",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Satisfação": {
+    "Verificar urgência alta": {
+      "main": [
+        [
+          {
+            "node": "Enviar alerta - Alta urgência",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar alerta - Alta urgência": {
       "main": [
         []
-      ]
-    },
-    "Cobrança Duplicada": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
       ]
     }
   },
@@ -226,8 +272,9 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "603a9066-3a2a-4cb5-99ec-ea272667772b",
+  "versionId": "a4f6d9c9-8f09-45a5-8727-a3cb87ac18dd",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
   },
   "nodeGroups": [],
