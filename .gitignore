@@ -1,0 +1,15 @@
+
+# Segredos e variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Dados locais e credenciais
+.n8n/
+credentials.json
+secrets/
+
+# Dependências e arquivos temporários
+node_modules/
+.DS_Store
+Thumbs.db
