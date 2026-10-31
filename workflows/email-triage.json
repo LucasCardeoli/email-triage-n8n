@@ -14,47 +14,6 @@
             {
               "id": "08c88005-1b4b-43b9-b708-339bb6c08e78",
               "name": "assunto",
-              "value": "Parabéns pelo atendimento",
-              "type": "string"
-            },
-            {
-              "id": "7371b263-3fd0-4921-9612-7bbe3677d5bb",
-              "name": "mensagem",
-              "value": "Olá! Gostaria de agradecer pelo excelente atendimento que recebi. A equipe foi muito atenciosa, resolveu meu problema rapidamente e fiquei muito satisfeito com a experiência. Continuarei comprando com vocês!",
-              "type": "string"
-            },
-            {
-              "id": "549b52dc-4065-4137-a762-4a5e646298c2",
-              "name": "",
-              "value": "",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        192,
-        -160
-      ],
-      "id": "23b29586-fdea-436d-b4d5-036db1125dd5",
-      "name": "Satisfação"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "fd6eff30-5c79-485d-805c-7d029c005697",
-              "name": "remetente",
-              "value": "cliente@email.com",
-              "type": "string"
-            },
-            {
-              "id": "08c88005-1b4b-43b9-b708-339bb6c08e78",
-              "name": "assunto",
               "value": "Cobrança duplicada no cartão",
               "type": "string"
             },
@@ -85,8 +44,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        704,
-        -272
+        720,
+        -368
       ],
       "id": "34d4f706-f657-43c9-a634-7a8e938a85f8",
       "name": "HTTP Request1"
@@ -130,7 +89,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst resposta = $input.first().json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\nconst dadosOriginais = $(\"Cobrança Duplicada\").first().json;\n\nreturn [\n  {\n    json: {\n      ...dadosOriginais,\n      ...classificacao\n    }\n  }\n];"
+        "jsCode": "\nconst resposta = $input.first().json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\n// Recupera os dados enviados pelo Edit Fields do Gmail\nconst dadosOriginais = $(\"Edit Fields (Gmail)\").first().json;\n\nreturn [\n  {\n    json: {\n      ...dadosOriginais,\n      ...classificacao\n    }\n  }\n];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -169,8 +128,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        880,
-        -144
+        960,
+        -48
       ],
       "id": "881e5742-06f0-4869-b514-726afced0354",
       "name": "Verificar urgência alta"
@@ -320,24 +279,97 @@
           "name": "Google Sheets account"
         }
       }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        -224
+      ],
+      "id": "76044985-3af9-4496-aeca-a68c9540270f",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KiESnAHxapUOCT5s",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        -176
+      ],
+      "id": "02bc2d49-fc0b-4bd6-b049-d8ca1cbd3458",
+      "name": "Get a message",
+      "webhookId": "88e469a4-c1e8-448c-a10f-55961b351040",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KiESnAHxapUOCT5s",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "85d7ad30-98cc-40a4-9c80-666d076ba1c3",
+              "name": "remetente",
+              "value": "={{ $json.from.text }}",
+              "type": "string"
+            },
+            {
+              "id": "023ab634-3284-4358-8b06-95e6ac7fec09",
+              "name": "assunto",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "39b75530-0441-474e-9efa-37317c11c52d",
+              "name": "mensagem",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        464,
+        -192
+      ],
+      "id": "a6602062-c45f-42a0-8f55-824781d4eccd",
+      "name": "Edit Fields (Gmail)"
     }
   ],
   "pinData": {},
   "connections": {
-    "Satisfação": {
-      "main": [
-        []
-      ]
-    },
     "Cobrança Duplicada": {
       "main": [
-        [
-          {
-            "node": "Classificar e-mail - DeepSeek",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Iniciar teste manual": {
@@ -393,15 +425,53 @@
       "main": [
         []
       ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        []
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Classificar e-mail - DeepSeek",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "8b499f5c-f489-43ac-8d36-86cd8d36fc72",
+  "versionId": "c32c5ee3-8379-4585-a660-093f8fb8acd8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
