@@ -3,66 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "fd6eff30-5c79-485d-805c-7d029c005697",
-              "name": "remetente",
-              "value": "cliente@email.com",
-              "type": "string"
-            },
-            {
-              "id": "08c88005-1b4b-43b9-b708-339bb6c08e78",
-              "name": "assunto",
-              "value": "Cobrança duplicada no cartão",
-              "type": "string"
-            },
-            {
-              "id": "7371b263-3fd0-4921-9612-7bbe3677d5bb",
-              "name": "mensagem",
-              "value": "Olá! Identifiquei que fui cobrado duas vezes pelo mesmo pedido no meu cartão de crédito. O valor foi debitado em duplicidade e preciso que resolvam essa situação o mais rápido possível. Solicito o estorno de uma das cobranças. Aguardo um retorno urgente!",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        224,
-        64
-      ],
-      "id": "137a8234-a2f5-4057-9f65-a6edc2e0bec0",
-      "name": "Cobrança Duplicada"
-    },
-    {
-      "parameters": {
-        "url": "https://api.telegram.org/bot9084387540:AAEE7e8_zsfp-6jBCAdrAKnX2ehPPVNVMi4/getUpdates",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        720,
-        -368
-      ],
-      "id": "34d4f706-f657-43c9-a634-7a8e938a85f8",
-      "name": "HTTP Request1"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "9251c264-35e1-4fb9-b8cb-ab98ad518f38",
-      "name": "Iniciar teste manual"
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "https://api.deepseek.com/chat/completions",
         "authentication": "genericCredentialType",
@@ -75,8 +15,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        416,
-        0
+        912,
+        -224
       ],
       "id": "35262bd0-214b-49f7-a8bc-b1b3895469b7",
       "name": "Classificar e-mail - DeepSeek",
@@ -95,8 +35,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        0
+        1184,
+        -208
       ],
       "id": "8d169b4e-8c61-4ac7-a2fd-f7058ef21425",
       "name": "Validar classificação e organizar dados"
@@ -129,8 +69,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        960,
-        -48
+        1440,
+        -288
       ],
       "id": "881e5742-06f0-4869-b514-726afced0354",
       "name": "Verificar urgência alta"
@@ -144,8 +84,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1200,
-        16
+        1712,
+        -448
       ],
       "id": "76410f58-9803-4bf6-960c-7bf6011c47a6",
       "name": "Enviar alerta - Alta urgência",
@@ -184,10 +124,21 @@
             "urgencia": "={{ $json.urgencia }}",
             "sentimento": "={{ $json.sentimento }}",
             "resumo": "={{ $json.resumo }}",
-            "rascunho_resposta": "={{ $json.rascunho_resposta }}"
+            "rascunho_resposta": "={{ $json.rascunho_resposta }}",
+            "id_email": "={{ $json.id_email }}"
           },
           "matchingColumns": [],
           "schema": [
+            {
+              "id": "id_email",
+              "displayName": "id_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
             {
               "id": "data_processamento",
               "displayName": "data_processamento",
@@ -195,7 +146,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "remetente",
@@ -204,7 +156,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "assunto",
@@ -213,7 +166,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "categoria",
@@ -222,7 +176,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "urgencia",
@@ -231,7 +186,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "sentimento",
@@ -240,7 +196,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "resumo",
@@ -249,7 +206,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "rascunho_resposta",
@@ -258,7 +216,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -269,8 +228,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        864,
-        128
+        1200,
+        32
       ],
       "id": "9525d62a-95cc-4868-b1d7-9f6aa36947ae",
       "name": "Append row in sheet",
@@ -295,8 +254,8 @@
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.4,
       "position": [
-        32,
-        -224
+        -80,
+        -240
       ],
       "id": "76044985-3af9-4496-aeca-a68c9540270f",
       "name": "Gmail Trigger",
@@ -317,7 +276,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        272,
+        160,
         -176
       ],
       "id": "02bc2d49-fc0b-4bd6-b049-d8ca1cbd3458",
@@ -351,6 +310,12 @@
               "name": "mensagem",
               "value": "={{ $json.text }}",
               "type": "string"
+            },
+            {
+              "id": "4645c941-f94e-4386-b30e-8168b63de423",
+              "name": "id_email",
+              "value": "={{ $json.id }}",
+              "type": "string"
             }
           ]
         },
@@ -359,31 +324,86 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        464,
-        -192
+        368,
+        -208
       ],
       "id": "a6602062-c45f-42a0-8f55-824781d4eccd",
       "name": "Edit Fields (Gmail)"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "8Gv536DTQOvPDywM",
+          "mode": "list",
+          "cachedResultName": "processed_emails",
+          "cachedResultUrl": "/projects/ok5WUyVHskUkeHDc/datatables/8Gv536DTQOvPDywM"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id_email",
+              "keyValue": "={{ $json.id_email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -176
+      ],
+      "id": "2cd7c2a6-3838-4c1c-b8e8-a7bf9bb4dbfc",
+      "name": "If row does not exist"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "8Gv536DTQOvPDywM",
+          "mode": "list",
+          "cachedResultName": "processed_emails",
+          "cachedResultUrl": "/projects/ok5WUyVHskUkeHDc/datatables/8Gv536DTQOvPDywM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_email": "={{ $json.id_email }}"
+          },
+          "matchingColumns": [
+            "id_email"
+          ],
+          "schema": [
+            {
+              "id": "id_email",
+              "displayName": "id_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1584,
+        48
+      ],
+      "id": "0a522c1d-6064-4ae7-93fb-1d21aa1416c3",
+      "name": "Insert row"
     }
   ],
   "pinData": {},
   "connections": {
-    "Cobrança Duplicada": {
-      "main": [
-        []
-      ]
-    },
-    "Iniciar teste manual": {
-      "main": [
-        [
-          {
-            "node": "Cobrança Duplicada",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Classificar e-mail - DeepSeek": {
       "main": [
         [
@@ -438,11 +458,6 @@
         ]
       ]
     },
-    "HTTP Request1": {
-      "main": [
-        []
-      ]
-    },
     "Get a message": {
       "main": [
         [
@@ -458,11 +473,38 @@
       "main": [
         [
           {
+            "node": "If row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If row does not exist": {
+      "main": [
+        [
+          {
             "node": "Classificar e-mail - DeepSeek",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        []
       ]
     }
   },
@@ -472,7 +514,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "6fd7c6f4-7cb1-4a89-bcbe-b56f94b309d4",
+  "versionId": "06378b8a-6cdc-44bc-b1c3-c8ca8ba8f3c3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
