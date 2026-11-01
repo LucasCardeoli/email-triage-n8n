@@ -89,7 +89,8 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst resposta = $input.first().json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\n// Recupera os dados enviados pelo Edit Fields do Gmail\nconst dadosOriginais = $(\"Edit Fields (Gmail)\").first().json;\n\nreturn [\n  {\n    json: {\n      ...dadosOriginais,\n      ...classificacao\n    }\n  }\n];\n"
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst resposta = $input.item.json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\n// Recupera os dados do e-mail correspondente à classificação\nconst dadosOriginais = $(\"Edit Fields (Gmail)\").item.json;\n\nreturn {\n  json: {\n    ...dadosOriginais,\n    ...classificacao\n  }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -471,7 +472,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "c32c5ee3-8379-4585-a660-093f8fb8acd8",
+  "versionId": "6fd7c6f4-7cb1-4a89-bcbe-b56f94b309d4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
