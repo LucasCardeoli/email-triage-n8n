@@ -20,6 +20,8 @@
       ],
       "id": "35262bd0-214b-49f7-a8bc-b1b3895469b7",
       "name": "Classificar e-mail - DeepSeek",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
       "credentials": {
         "httpHeaderAuth": {
           "id": "KafeN8swMq6rpuwp",
@@ -77,19 +79,21 @@
     },
     {
       "parameters": {
-        "chatId": "1275267338",
+        "chatId": "SEU_CHAT_ID",
         "text": "={{\n\"🚨 ALERTA DE ALTA URGÊNCIA\\n\\n\" +\n\"📩 Remetente: \" + $json.remetente + \"\\n\" +\n\"📌 Assunto: \" + $json.assunto + \"\\n\" +\n\"🏷️ Categoria: \" + $json.categoria + \"\\n\" +\n\"😟 Sentimento: \" + $json.sentimento + \"\\n\\n\" +\n\"📝 Resumo:\\n\" + $json.resumo + \"\\n\\n\" +\n\"💬 Sugestão de resposta:\\n\" + $json.rascunho_resposta\n}}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1712,
+        1648,
         -448
       ],
       "id": "76410f58-9803-4bf6-960c-7bf6011c47a6",
       "name": "Enviar alerta - Alta urgência",
       "webhookId": "5c27ee09-1745-4fe1-8ab0-2c2718dbc537",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
       "credentials": {
         "telegramApi": {
           "id": "w4CaURTkU79iU0V0",
@@ -102,30 +106,30 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Email Triage - Histórico de E-mails",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
           "cachedResultName": "Página1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs/edit#gid=0"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "data_processamento": "={{ $now.toISO() }}",
-            "remetente": "={{ $json.remetente }}",
-            "assunto": "={{ $json.assunto }}",
-            "categoria": "={{ $json.categoria }}",
-            "urgencia": "={{ $json.urgencia }}",
-            "sentimento": "={{ $json.sentimento }}",
-            "resumo": "={{ $json.resumo }}",
-            "rascunho_resposta": "={{ $json.rascunho_resposta }}",
-            "id_email": "={{ $json.id_email }}"
+            "remetente": "={{ $('Validar classificação e organizar dados').item.json.remetente }}",
+            "assunto": "={{ $('Validar classificação e organizar dados').item.json.assunto }}",
+            "categoria": "={{ $('Validar classificação e organizar dados').item.json.categoria }}",
+            "urgencia": "={{ $('Validar classificação e organizar dados').item.json.urgencia }}",
+            "sentimento": "={{ $('Validar classificação e organizar dados').item.json.sentimento }}",
+            "resumo": "={{ $('Validar classificação e organizar dados').item.json.resumo }}",
+            "rascunho_resposta": "={{ $('Validar classificação e organizar dados').item.json.rascunho_resposta }}",
+            "id_email": "={{ $('Validar classificação e organizar dados').item.json.id_email }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -228,8 +232,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1200,
-        32
+        1936,
+        -256
       ],
       "id": "9525d62a-95cc-4868-b1d7-9f6aa36947ae",
       "name": "Append row in sheet",
@@ -395,8 +399,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1584,
-        48
+        2112,
+        -224
       ],
       "id": "0a522c1d-6064-4ae7-93fb-1d21aa1416c3",
       "name": "Insert row"
@@ -419,11 +423,6 @@
       "main": [
         [
           {
-            "node": "Append row in sheet",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "Verificar urgência alta",
             "type": "main",
             "index": 0
@@ -439,12 +438,25 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Enviar alerta - Alta urgência": {
       "main": [
-        []
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Gmail Trigger": {
@@ -514,10 +526,8 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "06378b8a-6cdc-44bc-b1c3-c8ca8ba8f3c3",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
+    "templateCredsSetupCompleted": true
   },
   "nodeGroups": [],
   "id": "Gpssg2q8EZ2LTZcJ",
