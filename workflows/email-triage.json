@@ -32,7 +32,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "\nconst resposta = $input.item.json;\n\nconst conteudo = resposta.choices[0].message.content;\n\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\nif (!categorias.includes(classificacao.categoria)) {\n  throw new Error(\"Categoria inválida.\");\n}\n\nif (!urgencias.includes(classificacao.urgencia)) {\n  throw new Error(\"Urgência inválida.\");\n}\n\nif (!sentimentos.includes(classificacao.sentimento)) {\n  throw new Error(\"Sentimento inválido.\");\n}\n\n// Recupera os dados do e-mail correspondente à classificação\nconst dadosOriginais = $(\"Edit Fields (Gmail)\").item.json;\n\nreturn {\n  json: {\n    ...dadosOriginais,\n    ...classificacao\n  }\n};\n"
+        "jsCode": "const resposta = $input.item.json;\n\n// 1. Validar a estrutura da resposta da API\nconst conteudo = resposta?.choices?.[0]?.message?.content;\n\nif (typeof conteudo !== \"string\" || !conteudo.trim()) {\n  throw new Error(\"A API não retornou um conteúdo válido.\");\n}\n\n// 2. Converter o JSON retornado pela IA\nlet classificacao;\n\ntry {\n  classificacao = JSON.parse(conteudo);\n} catch (error) {\n  throw new Error(\n    \"A IA retornou um JSON inválido: \" + error.message\n  );\n}\n\n// 3. Validar se a resposta é um objeto\nif (\n  typeof classificacao !== \"object\" ||\n  classificacao === null ||\n  Array.isArray(classificacao)\n) {\n  throw new Error(\"A classificação retornada não é um objeto válido.\");\n}\n\n// 4. Definir valores permitidos\nconst categorias = [\n  \"cobranca\",\n  \"suporte_tecnico\",\n  \"duvida_produto\",\n  \"cancelamento\",\n  \"entrega_pedido\",\n  \"elogio\",\n  \"outros\"\n];\n\nconst urgencias = [\"alta\", \"media\", \"baixa\"];\n\nconst sentimentos = [\"positivo\", \"neutro\", \"negativo\"];\n\n// 5. Normalizar os campos de classificação\nconst categoria = classificacao.categoria?.trim().toLowerCase();\nconst urgencia = classificacao.urgencia?.trim().toLowerCase();\nconst sentimento = classificacao.sentimento?.trim().toLowerCase();\n\n// 6. Validar os valores\nif (!categorias.includes(categoria)) {\n  throw new Error(`Categoria inválida: ${categoria}`);\n}\n\nif (!urgencias.includes(urgencia)) {\n  throw new Error(`Urgência inválida: ${urgencia}`);\n}\n\nif (!sentimentos.includes(sentimento)) {\n  throw new Error(`Sentimento inválido: ${sentimento}`);\n}\n\n// 7. Validar os campos textuais\nconst resumo = classificacao.resumo;\nconst rascunhoResposta = classificacao.rascunho_resposta;\n\nif (typeof resumo !== \"string\" || !resumo.trim()) {\n  throw new Error(\"Resumo ausente ou inválido.\");\n}\n\nif (\n  typeof rascunhoResposta !== \"string\" ||\n  !rascunhoResposta.trim()\n) {\n  throw new Error(\"Rascunho de resposta ausente ou inválido.\");\n}\n\n// 8. Recuperar os dados originais do Gmail\nconst dadosOriginais = $(\"Edit Fields (Gmail)\").item.json;\n\n// 9. Retornar os dados combinados\nreturn {\n  json: {\n    ...dadosOriginais,\n    categoria,\n    urgencia,\n    sentimento,\n    resumo: resumo.trim(),\n    rascunho_resposta: rascunhoResposta.trim()\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -79,7 +79,7 @@
     },
     {
       "parameters": {
-        "chatId": "SEU_CHAT_ID",
+        "chatId": "1275267338",
         "text": "={{\n\"🚨 ALERTA DE ALTA URGÊNCIA\\n\\n\" +\n\"📩 Remetente: \" + $json.remetente + \"\\n\" +\n\"📌 Assunto: \" + $json.assunto + \"\\n\" +\n\"🏷️ Categoria: \" + $json.categoria + \"\\n\" +\n\"😟 Sentimento: \" + $json.sentimento + \"\\n\\n\" +\n\"📝 Resumo:\\n\" + $json.resumo + \"\\n\\n\" +\n\"💬 Sugestão de resposta:\\n\" + $json.rascunho_resposta\n}}",
         "additionalFields": {}
       },
@@ -106,17 +106,17 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_ID",
+          "value": "1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs",
           "mode": "list",
           "cachedResultName": "Email Triage - Histórico de E-mails",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
           "cachedResultName": "Página1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zHcCclx76ECJNM40PED2kOS97e2ncv1kLLYhX9PHhfs/edit#gid=0"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -526,8 +526,10 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
+  "versionId": "8bd1ff87-be5c-4777-8df5-3028040f74b2",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "db98d5bf4386102bf86aacf227e16fe5b1676d740983509b47d05c4177025087"
   },
   "nodeGroups": [],
   "id": "Gpssg2q8EZ2LTZcJ",
