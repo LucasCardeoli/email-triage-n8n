@@ -1,78 +1,184 @@
 # Email Triage — Classificação Inteligente de E-mails
 
-Automação de triagem de e-mails de suporte utilizando n8n, DeepSeek API e JavaScript. O fluxo classifica mensagens, valida a saída estruturada da IA, registra os resultados e encaminha alertas de alta urgência para análise humana.
+Automação de triagem de e-mails de atendimento utilizando **n8n, DeepSeek API e JavaScript**.
+
+O projeto recebe e-mails pelo Gmail, utiliza um modelo de IA para classificar as mensagens, identifica urgência e sentimento, gera resumos e rascunhos de resposta e registra os resultados. Mensagens classificadas como alta urgência geram alertas pelo Telegram para análise humana.
+
+O objetivo é demonstrar como integrar modelos de IA a processos de negócio por meio de automação e APIs, mantendo validação dos dados e controle do processamento.
 
 ## Objetivos
 
 - Classificar e-mails por categoria e nível de urgência.
-- Identificar o sentimento da mensagem.
-- Gerar resumos e rascunhos de resposta para revisão humana.
-- Validar os dados retornados pelo modelo de IA com JavaScript.
+- Identificar o sentimento predominante da mensagem.
+- Gerar resumos objetivos e rascunhos de resposta para revisão humana.
+- Validar a saída estruturada da IA utilizando JavaScript.
 - Registrar os resultados no Google Sheets.
 - Enviar alertas de alta urgência pelo Telegram.
-- Prevenir o reprocessamento de e-mails já registrados por meio de uma Data Table do n8n.
+- Evitar o reprocessamento de e-mails já registrados utilizando uma Data Table do n8n.
+- Aplicar instruções de segurança para reduzir riscos de prompt injection e exposição de dados sensíveis.
 
-## Tecnologias
+## Arquitetura
 
-- **n8n:** orquestração da automação.
-- **DeepSeek API:** classificação e geração de conteúdo.
-- **JavaScript:** validação da saída estruturada.
-- **Gmail:** recebimento dos e-mails.
-- **Google Sheets:** histórico das mensagens processadas.
-- **Telegram:** notificação de casos urgentes.
-- **Data Tables do n8n:** controle de IDs processados.
-- **Docker Compose:** execução do ambiente.
-- **Git e GitHub:** versionamento do projeto.
+O workflow utiliza o n8n como camada de orquestração, conectando serviços externos e organizando as etapas de processamento.
 
-## Fluxo de processamento
+```mermaid
+flowchart TD
+    A[Gmail Trigger] --> B[Obter e-mail]
+    B --> C[Organizar dados]
+    C --> D{ID já processado?}
+    D -->|Sim| E[Encerrar processamento]
+    D -->|Não| F[DeepSeek API]
+    F --> G[Validar e organizar saída com JavaScript]
+    G --> H{Urgência alta?}
+    H -->|Sim| I[Enviar alerta pelo Telegram]
+    H -->|Não| J[Google Sheets]
+    I --> J
+    J --> K[Registrar ID na Data Table]
+```
 
-1. O Gmail Trigger identifica novos e-mails.
-2. O fluxo obtém o conteúdo da mensagem e organiza os campos necessários.
-3. A Data Table verifica se o ID do e-mail já foi registrado.
-4. A DeepSeek API classifica a mensagem e gera um resumo e um rascunho de resposta.
-5. Um nó JavaScript valida os campos e os valores permitidos.
-6. E-mails de alta urgência geram uma notificação no Telegram.
-7. Os resultados são registrados no Google Sheets.
-8. O ID processado é registrado na Data Table.
+### Etapas do processamento
+
+1. **Recebimento:** o Gmail Trigger identifica novos e-mails.
+2. **Extração:** o fluxo obtém o conteúdo da mensagem e organiza remetente, assunto, corpo e identificador.
+3. **Controle de duplicidade:** a Data Table `processed_emails` verifica se o e-mail já foi registrado.
+4. **Classificação com IA:** a DeepSeek API recebe os dados e retorna categoria, urgência, sentimento, resumo e rascunho de resposta.
+5. **Validação:** um nó JavaScript interpreta o JSON, verifica os campos e valida os valores permitidos.
+6. **Decisão:** um nó IF verifica se a urgência foi classificada como alta.
+7. **Notificação:** mensagens de alta urgência geram um alerta no Telegram.
+8. **Registro:** os resultados são armazenados no Google Sheets e o identificador é registrado na Data Table.
+
+## Tecnologias utilizadas
+
+| Tecnologia | Aplicação |
+|---|---|
+| n8n | Orquestração do workflow |
+| DeepSeek API | Classificação e geração de conteúdo |
+| JavaScript | Validação e organização dos dados |
+| Gmail | Recebimento de mensagens |
+| Google Sheets | Registro e histórico dos resultados |
+| Telegram | Notificações de alta urgência |
+| n8n Data Tables | Controle de e-mails processados |
+| Docker Compose | Configuração do ambiente |
+| Git e GitHub | Versionamento e documentação |
 
 ## Categorias de classificação
 
-- Cobrança (`cobranca`)
-- Suporte técnico (`suporte_tecnico`)
-- Dúvida sobre produto (`duvida_produto`)
-- Cancelamento (`cancelamento`)
-- Entrega de pedido (`entrega_pedido`)
-- Elogio (`elogio`)
-- Outros (`outros`)
+O modelo utiliza sete categorias:
 
-A urgência é classificada como `alta`, `media` ou `baixa`; o sentimento, como `positivo`, `neutro` ou `negativo`.
+| Categoria | Identificador |
+|---|---|
+| Cobrança | `cobranca` |
+| Suporte técnico | `suporte_tecnico` |
+| Dúvida sobre produto | `duvida_produto` |
+| Cancelamento | `cancelamento` |
+| Entrega de pedido | `entrega_pedido` |
+| Elogio | `elogio` |
+| Outros | `outros` |
+
+Além da categoria, o modelo identifica:
+
+- **Urgência:** `alta`, `media` ou `baixa`.
+- **Sentimento:** `positivo`, `neutro` ou `negativo`.
+
+A classificação considera o contexto da mensagem, o impacto relatado e os critérios definidos no prompt.
+
+## Prompt Engineering e segurança
+
+O prompt foi estruturado para orientar o modelo em tarefas específicas e restringir os formatos de saída.
+
+Entre os mecanismos implementados estão:
+
+- Definição explícita de categorias e critérios de classificação.
+- Instruções para diferenciar dúvidas comuns de situações de risco, como cobranças não reconhecidas.
+- Proteção contra tentativas de prompt injection presentes no conteúdo dos e-mails.
+- Tratamento do conteúdo recebido como dado não confiável.
+- Restrições para impedir solicitações de senhas, códigos de autenticação e dados financeiros sensíveis.
+- Orientações para evitar informações inventadas sobre produtos, políticas e procedimentos.
+- Regras para evitar que o modelo afirme ter executado ações que não foram realizadas.
+- Estrutura de saída JSON com campos e valores previamente definidos.
+
+O conteúdo recebido é delimitado e enviado separadamente das instruções do sistema. Essa abordagem ajuda a reduzir a confusão entre dados e instruções, mas não elimina completamente os riscos de prompt injection.
 
 ## Validação e confiabilidade
 
-A saída da IA é interpretada como JSON e validada antes de seguir para os nós de notificação e registro. Valores inválidos geram erro no processamento, evitando que uma classificação fora dos valores permitidos seja aceita silenciosamente.
+A resposta da IA é interpretada como JSON e passa por uma etapa de validação em JavaScript antes de seguir para os nós de notificação e registro.
 
-O fluxo também utiliza uma Data Table para verificar IDs previamente processados. Esse mecanismo reduz duplicidades, mas não garante processamento exatamente uma vez em todos os cenários de falha.
+Essa etapa verifica a estrutura e os valores permitidos, evitando que classificações inválidas sejam aceitas silenciosamente.
 
-## Configuração
+O controle de duplicidade utiliza a Data Table `processed_emails`, que armazena os identificadores dos e-mails já processados.
 
-1. Instale Docker Desktop e execute o ambiente definido em `docker-compose.yml`.
-2. Configure no n8n as credenciais necessárias para Gmail, DeepSeek, Google Sheets e Telegram.
-3. Configure o acesso à planilha de histórico e à Data Table `processed_emails`.
-4. Importe `workflows/email-triage.json` no n8n.
-5. Revise as credenciais e os parâmetros específicos do seu ambiente antes de ativar o fluxo.
+O workflow também utiliza novas tentativas de execução em operações selecionadas, como chamadas à API e envio de notificações.
 
-**Importante:** não publique tokens, chaves de API, dados pessoais de clientes ou identificadores privados nos arquivos do repositório.
+**Limitação:** o controle por identificador reduz o reprocessamento, mas não garante processamento exatamente uma vez. Falhas entre o envio de uma notificação, o registro na planilha e a gravação do identificador podem exigir mecanismos adicionais de recuperação e idempotência.
 
-## Status
+## Testes realizados
 
-**Protótipo funcional em testes.** Foram testados os caminhos de alta urgência e de urgência não alta, a notificação pelo Telegram, o registro no Google Sheets e o controle de IDs processados.
+Foram utilizados e-mails de teste com diferentes contextos para verificar a classificação, a geração de respostas e o comportamento do workflow.
 
-Ainda há oportunidades de melhoria em tratamento de falhas, prevenção de duplicidades em cenários de erro e avaliação sistemática da qualidade das classificações.
+| Cenário | Resultado esperado | Resultado observado |
+|---|---|---|
+| Cobrança não reconhecida com tentativa de prompt injection | Cobrança, alta urgência e sentimento negativo | Classificação correta e instruções maliciosas ignoradas |
+| Problema de acesso em mensagem encaminhada | Suporte técnico, média urgência e sentimento negativo | Classificação correta e identificação cautelosa das pessoas mencionadas |
+| Dúvida sobre produto sem informações disponíveis | Dúvida sobre produto, baixa urgência e sentimento neutro | Classificação correta, sem invenção de características ou garantia |
+
+Também foram realizados testes direcionados após ajustes no prompt para verificar:
+
+- Resistência a tentativas de manipulação.
+- Proteção de informações sensíveis.
+- Ausência de promessas de encaminhamento não executado.
+- Uso de saudações neutras para evitar identificação incorreta.
+
+Os testes foram funcionais e baseados em cenários controlados. Ainda não representam uma avaliação estatística de precisão, recall ou desempenho em uma base ampla de e-mails reais.
+
+## Estrutura do repositório
+
+```text
+email-triage-n8n/
+├── data/
+│   ├── test_emails.json
+│   ├── expected_results.json
+│   └── evaluation_results.json
+├── prompts/
+│   ├── email-classification.md
+│   └── README.md
+├── workflows/
+│   └── email-triage.json
+├── .gitignore
+├── docker-compose.yml
+└── README.md
+```
+
+- `workflows/`: exportação do workflow do n8n.
+- `prompts/`: documentação das instruções utilizadas na classificação.
+- `data/`: conjunto de e-mails de teste, resultados esperados e avaliações.
+- `docker-compose.yml`: configuração do ambiente de execução.
+
+## Configuração e execução
+
+1. Instale o Docker Desktop ou outro ambiente compatível com Docker Compose.
+2. Configure as variáveis de ambiente necessárias no arquivo de configuração, quando aplicável.
+3. Inicie o ambiente utilizando Docker Compose.
+4. Acesse o n8n e configure as credenciais para Gmail, DeepSeek API, Google Sheets e Telegram.
+5. Crie ou configure a Data Table `processed_emails`.
+6. Importe `workflows/email-triage.json` no n8n.
+7. Revise as referências de credenciais, parâmetros e estrutura da planilha.
+8. Execute os testes antes de ativar o workflow em um ambiente de produção.
+
+**Segurança:** nunca publique tokens, chaves de API, credenciais, dados pessoais de clientes ou identificadores privados no repositório.
+
+## Status do projeto
+
+**Protótipo funcional em testes.**
+
+O fluxo principal foi implementado e validado com cenários controlados de classificação, diferentes níveis de urgência, geração de respostas, notificação pelo Telegram, registro no Google Sheets e controle de IDs processados.
+
+O projeto ainda não foi validado em escala ou com uma base representativa de e-mails reais.
 
 ## Próximas melhorias
 
-- Criar um conjunto de e-mails fictícios rotulados para avaliar a precisão da classificação.
+- Ampliar o conjunto de e-mails fictícios rotulados para avaliação.
 - Medir precisão, recall e matriz de confusão por categoria e urgência.
-- Aprimorar o tratamento de erros e a recuperação de execuções.
-- Documentar os prompts e os critérios de validação.
+- Implementar tratamento de falhas e recuperação de execuções.
+- Aprimorar a idempotência entre notificações e registros.
 - Avaliar custos, privacidade e desempenho do modelo.
+- Expandir as categorias e os critérios de classificação conforme novos cenários de atendimento.
