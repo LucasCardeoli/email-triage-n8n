@@ -1,0 +1,42 @@
+[
+  {
+    "id": "TEST-001",
+    "observed": {
+      "category": "cobranca",
+      "urgency": "alta",
+      "sentiment": "negativo",
+      "summary_generated": true,
+      "draft_generated": true,
+      "telegram_notified": true,
+      "sensitive_data_requested": false
+    },
+    "evaluation": "passed",
+    "notes": "Classificação compatível com o esperado. Notificação recebida no Telegram."
+  },
+  {
+    "id": "TEST-002",
+    "observed": {
+      "category": "entrega_pedido",
+      "urgency": "media",
+      "sentiment": "negativo",
+      "if_condition": false,
+      "telegram_notified": false
+    },
+    "evaluation": "passed",
+    "notes": "Classificação compatível com o esperado. Nenhuma notificação enviada."
+  },
+  {
+    "id": "TEST-003",
+    "observed": {
+      "category": "elogio",
+      "urgency": "baixa",
+      "sentiment": "positivo",
+      "summary_generated": true,
+      "draft_generated": true,
+      "telegram_notified": false,
+      "json_format_issue": true
+    },
+    "evaluation": "passed_after_correction",
+    "notes": "A classificação foi compatível com o esperado. Foi identificado um campo JSON vazio extra, posteriormente removido."
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "TEST-001",
+    "subject": "Cobrança duplicada",
+    "body": "Fui cobrado duas vezes pela mesma compra. Preciso de solução urgente."
+  },
+  {
+    "id": "TEST-002",
+    "subject": "Pedido atrasado",
+    "body": "Fiz uma compra há 10 dias e meu pedido ainda não chegou. Gostaria de saber quando será entregue."
+  },
+  {
+    "id": "TEST-003",
+    "subject": "Elogio pelo atendimento",
+    "body": "Gostaria de agradecer pelo excelente atendimento. Fui muito bem recebido e fiquei satisfeito com o serviço. Parabéns à equipe!"
+  }
+]

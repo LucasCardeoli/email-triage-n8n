@@ -1,0 +1,23 @@
+[
+  {
+    "id": "TEST-001",
+    "category": "cobranca",
+    "urgency": "alta",
+    "sentiment": "negativo",
+    "should_notify_telegram": true
+  },
+  {
+    "id": "TEST-002",
+    "category": "entrega_pedido",
+    "urgency": "media",
+    "sentiment": "negativo",
+    "should_notify_telegram": false
+  },
+  {
+    "id": "TEST-003",
+    "category": "elogio",
+    "urgency": "baixa",
+    "sentiment": "positivo",
+    "should_notify_telegram": false
+  }
+]
