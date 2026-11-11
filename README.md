@@ -4,7 +4,7 @@ Automação de triagem de e-mails de atendimento utilizando **n8n, DeepSeek API 
 
 O projeto recebe e-mails pelo Gmail, utiliza um modelo de IA para classificar as mensagens, identifica urgência e sentimento, gera resumos e rascunhos de resposta e registra os resultados. Mensagens classificadas como alta urgência geram alertas pelo Telegram para análise humana.
 
-O objetivo é demonstrar como integrar modelos de IA a processos de negócio por meio de automação e APIs, mantendo validação dos dados e controle do processamento.
+O objetivo é demonstrar como integrar modelos de IA a processos de negócio por meio de automação e APIs, mantendo validação dos dados, controle do processamento e critérios de segurança.
 
 ## Objetivos
 
@@ -16,6 +16,7 @@ O objetivo é demonstrar como integrar modelos de IA a processos de negócio por
 - Enviar alertas de alta urgência pelo Telegram.
 - Evitar o reprocessamento de e-mails já registrados utilizando uma Data Table do n8n.
 - Aplicar instruções de segurança para reduzir riscos de prompt injection e exposição de dados sensíveis.
+- Documentar e avaliar o comportamento da classificação utilizando cenários de teste e resultados esperados.
 
 ## Arquitetura
 
@@ -84,9 +85,9 @@ A classificação considera o contexto da mensagem, o impacto relatado e os crit
 
 ## Prompt Engineering e segurança
 
-O prompt foi estruturado para orientar o modelo em tarefas específicas e restringir os formatos de saída.
+O prompt de classificação está documentado em `prompts/email-classification.md`, permitindo consultar as instruções utilizadas pelo modelo e compreender os critérios que orientam suas respostas.
 
-Entre os mecanismos implementados estão:
+Entre os mecanismos definidos estão:
 
 - Definição explícita de categorias e critérios de classificação.
 - Instruções para diferenciar dúvidas comuns de situações de risco, como cobranças não reconhecidas.
@@ -98,6 +99,8 @@ Entre os mecanismos implementados estão:
 - Estrutura de saída JSON com campos e valores previamente definidos.
 
 O conteúdo recebido é delimitado e enviado separadamente das instruções do sistema. Essa abordagem ajuda a reduzir a confusão entre dados e instruções, mas não elimina completamente os riscos de prompt injection.
+
+A configuração técnica da chamada à API, como modelo, temperatura e formato de resposta, é mantida no workflow do n8n.
 
 ## Validação e confiabilidade
 
@@ -111,24 +114,37 @@ O workflow também utiliza novas tentativas de execução em operações selecio
 
 **Limitação:** o controle por identificador reduz o reprocessamento, mas não garante processamento exatamente uma vez. Falhas entre o envio de uma notificação, o registro na planilha e a gravação do identificador podem exigir mecanismos adicionais de recuperação e idempotência.
 
-## Testes realizados
+## Testes e avaliação
 
-Foram utilizados e-mails de teste com diferentes contextos para verificar a classificação, a geração de respostas e o comportamento do workflow.
+O projeto possui um conjunto de cenários de teste documentados em `data/`, utilizado para comparar os resultados esperados com os resultados observados durante a execução do workflow.
 
-| Cenário | Resultado esperado | Resultado observado |
+Os arquivos estão organizados da seguinte forma:
+
+| Arquivo | Finalidade |
+|---|---|
+| `test_emails.json` | Dados dos e-mails utilizados nos testes |
+| `expected_results.json` | Classificações e comportamentos esperados |
+| `evaluation_results.json` | Resultados observados e avaliação dos cenários |
+
+### Cenários avaliados
+
+| Identificador | Cenário | Resultado esperado |
 |---|---|---|
-| Cobrança não reconhecida com tentativa de prompt injection | Cobrança, alta urgência e sentimento negativo | Classificação correta e instruções maliciosas ignoradas |
-| Problema de acesso em mensagem encaminhada | Suporte técnico, média urgência e sentimento negativo | Classificação correta e identificação cautelosa das pessoas mencionadas |
-| Dúvida sobre produto sem informações disponíveis | Dúvida sobre produto, baixa urgência e sentimento neutro | Classificação correta, sem invenção de características ou garantia |
+| TEST-001 | Cobrança duplicada | `cobranca`, `alta`, `negativo` |
+| TEST-002 | Pedido atrasado | `entrega_pedido`, `media`, `negativo` |
+| TEST-003 | Elogio ao atendimento | `elogio`, `baixa`, `positivo` |
 
-Também foram realizados testes direcionados após ajustes no prompt para verificar:
+### Resultados observados
 
-- Resistência a tentativas de manipulação.
-- Proteção de informações sensíveis.
-- Ausência de promessas de encaminhamento não executado.
-- Uso de saudações neutras para evitar identificação incorreta.
+- **TEST-001 — Cobrança duplicada:** classificação compatível com o esperado. O alerta de alta urgência foi enviado pelo Telegram.
+- **TEST-002 — Pedido atrasado:** classificação compatível com o esperado. A condição de alta urgência não foi atendida e não houve notificação pelo Telegram.
+- **TEST-003 — Elogio ao atendimento:** classificação compatível com o esperado. Não houve notificação pelo Telegram.
 
-Os testes foram funcionais e baseados em cenários controlados. Ainda não representam uma avaliação estatística de precisão, recall ou desempenho em uma base ampla de e-mails reais.
+Os três cenários foram avaliados como aprovados após os ajustes necessários nos dados de avaliação.
+
+Também foram definidos critérios de comportamento para situações como tentativas de prompt injection, proteção de informações sensíveis, ausência de promessas de ações não executadas e uso de saudações neutras.
+
+Os resultados representam testes funcionais com cenários controlados. Ainda não constituem uma avaliação estatística de precisão, recall ou desempenho em uma base ampla de e-mails reais.
 
 ## Estrutura do repositório
 
@@ -148,10 +164,11 @@ email-triage-n8n/
 └── README.md
 ```
 
-- `workflows/`: exportação do workflow do n8n.
-- `prompts/`: documentação das instruções utilizadas na classificação.
 - `data/`: conjunto de e-mails de teste, resultados esperados e avaliações.
+- `prompts/`: documentação do prompt de classificação e informações sobre sua utilização.
+- `workflows/`: exportação do workflow do n8n.
 - `docker-compose.yml`: configuração do ambiente de execução.
+- `README.md`: documentação geral do projeto.
 
 ## Configuração e execução
 
@@ -172,7 +189,9 @@ email-triage-n8n/
 
 O fluxo principal foi implementado e validado com cenários controlados de classificação, diferentes níveis de urgência, geração de respostas, notificação pelo Telegram, registro no Google Sheets e controle de IDs processados.
 
-O projeto ainda não foi validado em escala ou com uma base representativa de e-mails reais.
+O projeto também possui documentação do prompt de classificação, conjunto de dados de teste, resultados esperados e avaliação dos cenários executados.
+
+Ainda não foi validado em escala ou com uma base representativa de e-mails reais.
 
 ## Próximas melhorias
 
